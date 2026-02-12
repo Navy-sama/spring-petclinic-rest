@@ -35,9 +35,9 @@ pipeline {
             }
             post {
                 always {
-                    echo "Clean Docker images"
-                    sh "docker rmi ${DOCKER_IMAGE_NAME}:${IMAGE_TAG} || true"
-                    sh "docker rmi ${DOCKER_IMAGE_NAME}:latest || true"
+                    sh "echo Clean Docker images"
+                    sh "docker rmi ${DOCKER_IMAGE}:${IMAGE_TAG} || true"
+                    sh "docker rmi ${DOCKER_IMAGE}:latest || true"
                 }
             }
         }
