@@ -60,5 +60,5 @@ pipeline {
         failure {
             echo "❌ Gaing gaing gaing - Échec des tests ou du build"
         }
-    }+0
+    }
 }
