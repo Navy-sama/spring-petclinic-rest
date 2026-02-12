@@ -10,7 +10,7 @@ pipeline {
     tools {
         maven 'Maven 3.9.12'
         allure 'Allure 2.36.0'
-        docker 'Docker --latest'
+        dockerTool 'Docker --latest'
     }
 
     stages {
@@ -23,22 +23,14 @@ pipeline {
                 }
             }
         }
-        stage('Docker Push') {
+        stage('Docker Build & Push') {
             steps {
                 script {
-                    def backendImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", ".")
-
                     docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        def backendImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", ".")
                         backendImage.push("${DOCKER_TAG}")
                         backendImage.push("latest")
                     }
-                }
-            }
-            post {
-                always {
-                    sh "echo Clean Docker images"
-                    sh "docker rmi ${DOCKER_IMAGE}:${IMAGE_TAG} || true"
-                    sh "docker rmi ${DOCKER_IMAGE}:latest || true"
                 }
             }
         }
@@ -48,6 +40,9 @@ pipeline {
             }
         }
         stage('Déploiement Intégré (Recette)') {
+            agent {
+                label 'docker-host'
+            }
             steps {
                 script {
                     echo "🚀 Déploiement en environnement de recette..."
@@ -78,7 +73,7 @@ pipeline {
                 }
                 failure {
                     echo "❌ Échec du déploiement en recette"
-                    sh "docker-compose logs"
+                    sh "docker-compose logs || true"
                 }
             }
         }
