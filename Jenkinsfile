@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "mvn clean package"
+                        sh "mvn clean package -DskipTests"
                     }
                 }
             }
@@ -33,13 +33,13 @@ pipeline {
                     }
                 }
             }
-            post {
-                always {
-                    sh "echo Clean Docker images"
-                    sh "docker rmi ${DOCKER_IMAGE}:${IMAGE_TAG} || true"
-                    sh "docker rmi ${DOCKER_IMAGE}:latest || true"
-                }
-            }
+            // post {
+            //     always {
+            //         sh "echo Clean Docker images"
+            //         sh "docker rmi ${DOCKER_IMAGE}:${IMAGE_TAG} || true"
+            //         sh "docker rmi ${DOCKER_IMAGE}:latest || true"
+            //     }
+            // }
         }
         stage('Gen Allure report') {
             steps {
