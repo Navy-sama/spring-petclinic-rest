@@ -10,6 +10,7 @@ pipeline {
     tools {
         maven 'Maven 3.9.12'
         allure 'Allure 2.36.0'
+        docker 'Docker --latest'
     }
 
     stages {
@@ -33,17 +34,52 @@ pipeline {
                     }
                 }
             }
-            // post {
-            //     always {
-            //         sh "echo Clean Docker images"
-            //         sh "docker rmi ${DOCKER_IMAGE}:${IMAGE_TAG} || true"
-            //         sh "docker rmi ${DOCKER_IMAGE}:latest || true"
-            //     }
-            // }
+            post {
+                always {
+                    sh "echo Clean Docker images"
+                    sh "docker rmi ${DOCKER_IMAGE}:${IMAGE_TAG} || true"
+                    sh "docker rmi ${DOCKER_IMAGE}:latest || true"
+                }
+            }
         }
         stage('Gen Allure report') {
             steps {
                 allure includeProperties: false, jdk: '', resultPolicy: 'LEAVE_AS_IS', results: [[path: 'target/allure-results']]
+            }
+        }
+        stage('Déploiement Intégré (Recette)') {
+            steps {
+                script {
+                    echo "🚀 Déploiement en environnement de recette..."
+                    
+                    sh '''
+                        docker-compose down || true
+                        docker-compose up -d
+                    '''
+                    
+                    echo "⏳ Attente du démarrage des services..."
+                    sleep 30
+                    
+                    sh '''
+                        echo "Vérification de l'état des conteneurs:"
+                        docker-compose ps
+                        
+                        echo "Vérification de la santé de PostgreSQL:"
+                        docker-compose exec -T postgres pg_isready -U petclinic || true
+                        
+                        echo "Vérification du backend:"
+                        curl -f http://localhost:9966/petclinic/actuator/health || echo "Backend pas encore prêt"
+                    '''
+                }
+            }
+            post {
+                success {
+                    echo "✅ Déploiement en recette réussi"
+                }
+                failure {
+                    echo "❌ Échec du déploiement en recette"
+                    sh "docker-compose logs"
+                }
             }
         }
     }
