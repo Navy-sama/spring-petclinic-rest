@@ -6,6 +6,11 @@ pipeline {
     }
 
     stages {
+        stage('Install deps') {
+            steps {
+                sh "mvn clean install -DskipTests"
+            }
+        }
         stage('Test and build JAR') {
             steps {
                 script {
