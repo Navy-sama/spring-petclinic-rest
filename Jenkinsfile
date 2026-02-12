@@ -6,12 +6,17 @@ pipeline {
     }
 
     stages {
-        stage('Launch tests') {
+        stage('Test and build JAR') {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "mvn test"
+                        sh "mvn clean test"
                     }
+                }
+            }
+            post {
+                always {
+                    sh "mvn package -DskipTests"
                 }
             }
         }
