@@ -1,27 +1,43 @@
 pipeline {
     agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = 'DockerHub'
+        DOCKER_IMAGE = "navysama/petclinic-rest"
+        DOCKER_TAG = "${env.BUILD_NUMBER}"
+    }
+
     tools {
         maven 'Maven 3.9.12'
         allure 'Allure 2.36.0'
     }
 
     stages {
-        stage('Install deps') {
-            steps {
-                sh "mvn clean install -DskipTests"
-            }
-        }
-        stage('Test and build JAR') {
+        stage('Tests & Build') {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "mvn test"
+                        sh "mvn clean package"
+                    }
+                }
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                script {
+                    def backendImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", ".")
+
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        backendImage.push("${DOCKER_TAG}")
+                        backendImage.push("latest")
                     }
                 }
             }
             post {
                 always {
-                    sh "mvn package -DskipTests"
+                    echo "Clean Docker images"
+                    sh "docker rmi ${DOCKER_IMAGE_NAME}:${IMAGE_TAG} || true"
+                    sh "docker rmi ${DOCKER_IMAGE_NAME}:latest || true"
                 }
             }
         }
@@ -44,5 +60,5 @@ pipeline {
         failure {
             echo "❌ Gaing gaing gaing - Échec des tests ou du build"
         }
-    }
+    }+0
 }
