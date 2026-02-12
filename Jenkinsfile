@@ -15,7 +15,7 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "mvn clean test"
+                        sh "mvn test"
                     }
                 }
             }
