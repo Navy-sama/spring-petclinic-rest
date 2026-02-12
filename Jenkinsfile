@@ -26,8 +26,9 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 script {
+                    def backendImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", ".")
+                    
                     docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        def backendImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", ".")
                         backendImage.push("${DOCKER_TAG}")
                         backendImage.push("latest")
                     }
