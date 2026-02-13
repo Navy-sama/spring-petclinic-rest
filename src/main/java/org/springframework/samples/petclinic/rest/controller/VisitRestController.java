@@ -39,7 +39,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(exposedHeaders = "errors, content-type")
-@RequestMapping("api")
+@RequestMapping("/api")
 public class VisitRestController implements VisitsApi {
 
     private final ClinicService clinicService;

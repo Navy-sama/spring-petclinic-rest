@@ -38,7 +38,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(exposedHeaders = "errors, content-type")
-@RequestMapping("api")
+@RequestMapping("/api")
 public class SpecialtyRestController implements SpecialtiesApi {
 
     private final ClinicService clinicService;
