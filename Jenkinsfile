@@ -31,7 +31,7 @@ pipeline {
                         
                         docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
                             backendImage.push("${DOCKER_TAG}")
-                            backendImage.push("latest")
+                            // backendImage.push("latest")
                         }
                     }
                 }
