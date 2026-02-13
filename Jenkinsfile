@@ -26,12 +26,25 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 script {
-                    def backendImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", ".")
+                    sh """
+                        docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+                        docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
+                    """
                     
                     docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        backendImage.push("${DOCKER_TAG}")
-                        backendImage.push("latest")
+                        sh """
+                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                            docker push ${DOCKER_IMAGE}:latest
+                        """
                     }
+                }
+            }
+            post {
+                always {
+                    sh """
+                        docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || true
+                        docker rmi ${DOCKER_IMAGE}:latest || true
+                    """
                 }
             }
         }
