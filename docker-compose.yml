@@ -26,7 +26,7 @@ services:
     ports:
       - "9966:9966"
     environment:
-      - SPRING_PROFILES_ACTIVE=postgres
+      - SPRING_PROFILES_ACTIVE=postgres,spring-data-jpa
       - POSTGRES_URL=jdbc:postgresql://postgres:5432/petclinic
       - POSTGRES_USER=petclinic
       - POSTGRES_PASS=petclinic
