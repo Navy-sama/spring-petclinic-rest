@@ -14,6 +14,7 @@ pipeline {
     }
 
     stages {
+
         stage('Tests & Build') {
             steps {
                 script {
@@ -23,6 +24,7 @@ pipeline {
                 }
             }
         }
+
         stage('Docker Build & Push') {
             steps {
                 script {
@@ -31,7 +33,7 @@ pipeline {
                         
                         docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
                             backendImage.push("${DOCKER_TAG}")
-                            // backendImage.push("latest")
+                            backendImage.push("latest")
                         }
                     }
                 }
@@ -51,24 +53,26 @@ pipeline {
                 }
             }
         }
+
         stage('Gen Allure report') {
             steps {
                 allure includeProperties: false, jdk: '', resultPolicy: 'LEAVE_AS_IS', results: [[path: 'target/allure-results']]
             }
         }
+
     }
     post {
         always {
             echo "Fin d'éxécution"
         }
         success {
-            echo "✅ Ca a chou - Tests passés → JAR généré avec succès"
+            echo "✅ Ca a chou - Image backend générée et poussée avec succès"
         }
         aborted {
             echo "🚫 Tué, tué, tué"
         }
         failure {
-            echo "❌ Gaing gaing gaing - Échec des tests ou du build"
+            echo "❌ Gaing gaing gaing - Échec des tests, du build ou du push"
         }
     }
 }
