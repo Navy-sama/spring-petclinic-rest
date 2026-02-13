@@ -30,11 +30,20 @@ services:
       - POSTGRES_URL=jdbc:postgresql://postgres:5432/petclinic
       - POSTGRES_USER=petclinic
       - POSTGRES_PASS=petclinic
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_SQL_INIT_MODE=always
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - petclinic-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9966/petclinic/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
 volumes:
   postgres-data:

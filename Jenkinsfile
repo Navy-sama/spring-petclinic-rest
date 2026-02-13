@@ -32,7 +32,6 @@ pipeline {
                         def backendImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", ".")
                         
                         docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                            backendImage.push("${DOCKER_TAG}")
                             backendImage.push("latest")
                         }
                     }
