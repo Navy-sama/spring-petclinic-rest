@@ -38,9 +38,6 @@ pipeline {
             }
         }
         stage('Déploiement Intégré (Recette)') {
-            agent {
-                label 'docker-host'
-            }
             steps {
                 script {
                     echo "🚀 Déploiement en environnement de recette..."
