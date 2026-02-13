@@ -26,31 +26,15 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 script {
-                    sh """
-                        docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
-                        docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
-                    """
-                    
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        sh """
-                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                            docker push ${DOCKER_IMAGE}:latest
-                        """
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        def backendImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", ".")
+                        
+                        docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                            backendImage.push("${DOCKER_TAG}")
+                            backendImage.push("latest")
+                        }
                     }
                 }
-            }
-            post {
-                always {
-                    sh """
-                        docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || true
-                        docker rmi ${DOCKER_IMAGE}:latest || true
-                    """
-                }
-            }
-        }
-        stage('Gen Allure report') {
-            steps {
-                allure includeProperties: false, jdk: '', resultPolicy: 'LEAVE_AS_IS', results: [[path: 'target/allure-results']]
             }
         }
         stage('Déploiement Intégré (Recette)') {
@@ -89,6 +73,11 @@ pipeline {
                     echo "❌ Échec du déploiement en recette"
                     sh "docker-compose logs || true"
                 }
+            }
+        }
+        stage('Gen Allure report') {
+            steps {
+                allure includeProperties: false, jdk: '', resultPolicy: 'LEAVE_AS_IS', results: [[path: 'target/allure-results']]
             }
         }
     }
