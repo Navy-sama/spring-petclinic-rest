@@ -36,39 +36,18 @@ pipeline {
                     }
                 }
             }
-        }
-        stage('Déploiement Intégré (Recette)') {
-            steps {
-                script {
-                    echo "🚀 Déploiement en environnement de recette..."
-                    
-                    sh '''
-                        docker-compose down || true
-                        docker-compose up -d
-                    '''
-                    
-                    echo "⏳ Attente du démarrage des services..."
-                    sleep 30
-                    
-                    sh '''
-                        echo "Vérification de l'état des conteneurs:"
-                        docker-compose ps
-                        
-                        echo "Vérification de la santé de PostgreSQL:"
-                        docker-compose exec -T postgres pg_isready -U petclinic || true
-                        
-                        echo "Vérification du backend:"
-                        curl -f http://localhost:9966/petclinic/actuator/health || echo "Backend pas encore prêt"
-                    '''
-                }
-            }
-            post {
+             post {
                 success {
-                    echo "✅ Déploiement en recette réussi"
+                    script {
+                    def current = env.BUILD_NUMBER.toInteger()
+                    
+                    if (current > 1) {
+                        def previousTag = (current - 1).toString()
+                        
+                        echo "Suppression de l'ancienne image : ${DOCKER_IMAGE}:${previousTag}"
+                        sh "docker rmi ${DOCKER_IMAGE}:${previousTag} || true"
+                    } 
                 }
-                failure {
-                    echo "❌ Échec du déploiement en recette"
-                    sh "docker-compose logs || true"
                 }
             }
         }
